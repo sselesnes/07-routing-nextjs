@@ -9,18 +9,17 @@ import type { Note } from "@/types/note";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateNote } from "@/lib/api";
-import Link from "next/link";
 import type { PaginatedNotes } from "@/lib/api";
 
 export default function NoteDetailsClient({ id }: { id: number }) {
   const { data: note } = useQuery<Note, Error>({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
-    refetchOnMount: false, // Не робити повторний запит даних
+    refetchOnMount: false,
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [mutationError, setMutationError] = useState<Error | null>(null); // Стан для помилки мутації
+  const [mutationError, setMutationError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -34,9 +33,7 @@ export default function NoteDetailsClient({ id }: { id: number }) {
       tag: string;
     }) => updateNote(data),
     onSuccess: (updatedNote) => {
-      // Оновлюємо кеш для поточної нотатки
       queryClient.setQueryData(["note", id], updatedNote);
-      // Оновлюємо кеш для списку нотаток
       queryClient.setQueriesData<PaginatedNotes>(
         { queryKey: ["notes"] },
         (oldData) => {
@@ -55,19 +52,18 @@ export default function NoteDetailsClient({ id }: { id: number }) {
         },
       );
       setIsEditing(false);
-      setMutationError(null); // Очищаємо помилку після успішного збереження
+      setMutationError(null);
+      handleClose();
     },
     onError: (error: Error) => {
-      setMutationError(error); // Зберігаємо помилку в стані
+      setMutationError(error);
     },
   });
 
-  // Помилка для мутації, якщо вона сталася
   if (mutationError) {
     throw mutationError;
   }
 
-  // Якщо нотатка ще не завантажилася, Next.js використає loading.tsx
   if (!note) {
     return null;
   }
@@ -78,7 +74,7 @@ export default function NoteDetailsClient({ id }: { id: number }) {
 
   const handleEditClick = () => {
     setIsEditing(true);
-    setMutationError(null); // Очищаємо попередню помилку при початку редагування
+    setMutationError(null);
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -96,7 +92,12 @@ export default function NoteDetailsClient({ id }: { id: number }) {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setMutationError(null); // Очищаємо помилку при скасуванні
+    setMutationError(null);
+    handleClose();
+  };
+
+  const handleClose = () => {
+    window.history.back(); // Повернення на попередню сторінку
   };
 
   return (
@@ -104,9 +105,9 @@ export default function NoteDetailsClient({ id }: { id: number }) {
       <div className={css.item}>
         <div className={css.header}>
           <h2>{note.title}</h2>
-          <Link href="/notes">
-            <button className={css.closeBtn}>Close details</button>
-          </Link>
+          <button className={css.closeBtn} onClick={handleClose}>
+            Close details
+          </button>
         </div>
         {isEditing ? (
           <form onSubmit={handleSave}>

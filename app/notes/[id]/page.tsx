@@ -8,7 +8,7 @@ import { QueryClient } from "@tanstack/react-query";
 export default async function NoteDetails({
   params,
 }: {
-  // params should be awaited before using its properties
+  // Очікуємо params
   params: Promise<{ id: string }>;
 }) {
   const queryClient = new QueryClient();

@@ -1,4 +1,4 @@
-//notes/Notes.client.tsx
+//notes/filter/[...slug]/Notes.client.tsx
 
 "use client";
 
@@ -15,19 +15,26 @@ import NoteModal from "@/components/NoteModal/NoteModal";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
+  tag?: string;
 }
 
-export default function NotesClient({ initialData }: NotesClientProps) {
+export default function NotesClient({ initialData, tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const apiTag = tag === "none" ? undefined : tag; // Map "none" to undefined for API
+
   const { data, error } = useQuery<FetchNotesResponse, Error>({
-    queryKey: ["notes", { page, query: debouncedQuery }],
-    queryFn: () => fetchNotes({ page, query: debouncedQuery, perPage: 12 }),
+    queryKey: ["notes", { page, query: debouncedQuery, tag: apiTag }],
+    queryFn: () =>
+      fetchNotes({ page, query: debouncedQuery, perPage: 12, tag: apiTag }),
     placeholderData: keepPreviousData,
-    initialData: page === 1 && debouncedQuery === "" ? initialData : undefined,
+    initialData:
+      page === 1 && debouncedQuery === "" && apiTag === initialData.tag
+        ? initialData
+        : undefined,
   });
 
   if (error) {
@@ -35,7 +42,7 @@ export default function NotesClient({ initialData }: NotesClientProps) {
   }
 
   const handlePageChange = (selectedItem: { selected: number }) => {
-    setPage(selectedItem.selected + 1); // Для нульової індексації
+    setPage(selectedItem.selected + 1);
   };
 
   const handleSearchChange = (value: string) => {

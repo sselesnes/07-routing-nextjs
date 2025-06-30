@@ -1,4 +1,4 @@
-//\lib\api.ts
+// lib/api.ts
 
 import axios from "axios";
 import type { AxiosResponse } from "axios";
@@ -17,6 +17,7 @@ export interface FetchNotesResponse {
   page: number;
   perPage: number;
   totalPages: number;
+  tag?: string;
 }
 
 export type PaginatedNotes = {
@@ -52,7 +53,6 @@ export async function fetchNotes({
 }: FetchNotesParams): Promise<FetchNotesResponse> {
   try {
     const params: { [key: string]: number | string | undefined } = {
-      tag,
       page,
       perPage,
       sortBy: "created",
@@ -60,6 +60,10 @@ export async function fetchNotes({
 
     if (query && query.trim().length > 0) {
       params.search = query;
+    }
+
+    if (tag && tag !== "none") {
+      params.tag = tag;
     }
 
     const response: AxiosResponse<FetchNotesResponse> = await api.get("", {

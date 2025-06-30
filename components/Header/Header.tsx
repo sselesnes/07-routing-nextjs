@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import css from "./Header.module.css";
-import TagsMenu from "../TagsMenu/TagsMenu";
+import TagsMenu from "../../components/TagsMenu/TagsMenu";
 
 export default function Header() {
   return (

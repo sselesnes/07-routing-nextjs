@@ -1,4 +1,4 @@
-//notes\error.tsx
+//notes/filter/[...slug]/error.tsx
 
 "use client";
 

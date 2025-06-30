@@ -1,8 +1,9 @@
-// TagsMenu
+// TagsMenu.tsx
 
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import css from "./TagsMenu.module.css";
 import { Note } from "../../types/note";
 
@@ -10,7 +11,9 @@ type Props = {};
 
 export default function TagsMenu({}: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const tags = [
+  const [selectedTag, setSelectedTag] =
+    useState<(typeof tagsMenuList)[number]>("All notes");
+  const tagsMenuList = [
     "All notes",
     "Todo",
     "Work",
@@ -19,30 +22,37 @@ export default function TagsMenu({}: Props) {
     "Shopping",
   ] as const;
 
-  const filterPath = (tag: (typeof tags)[number]): Note["tag"] | "All" => {
-    return tag === "All notes" ? "All" : (tag as Note["tag"]);
+  const filterPath = (
+    tag: (typeof tagsMenuList)[number],
+  ): Note["tag"] | "none" => {
+    return tag === "All notes" ? "none" : (tag as Note["tag"]);
   };
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
+  const handleTagClick = (tag: (typeof tagsMenuList)[number]) => {
+    setSelectedTag(tag);
+    setIsMenuOpen(false);
+  };
+
   return (
     <div className={css.menuContainer}>
       <button className={css.menuButton} onClick={toggleMenu}>
-        Notes ▾
+        {selectedTag} ▾
       </button>
       {isMenuOpen && (
         <ul className={css.menuList}>
-          {tags.map((tag) => (
+          {tagsMenuList.map((tag) => (
             <li key={tag} className={css.menuItem}>
-              <a
+              <Link
                 href={`/notes/filter/${filterPath(tag)}`}
                 className={css.menuLink}
-                onClick={() => setIsMenuOpen(false)} // Закривати меню після кліку на тег
+                onClick={() => handleTagClick(tag)}
               >
                 {tag}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

@@ -6,36 +6,25 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import css from "./TagsMenu.module.css";
-import { Note } from "../../types/note";
+import { TAGS, Tags } from "../../types/note";
 
-type Props = {};
-
-export default function TagsMenu({}: Props) {
+export default function TagsMenu({}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<
     "Notes" | (typeof tagsMenuList)[number]
   >("Notes");
   const pathname = usePathname();
-  const tagsMenuList = [
-    "All notes",
-    "Todo",
-    "Work",
-    "Personal",
-    "Meeting",
-    "Shopping",
-  ] as const;
+  const tagsMenuList = ["All notes", ...TAGS] as const;
 
-  // Reset selectedTag to "Notes" when navigating to "/" or "/notes/filter/none"
+  // При зміні маршруту на Home або "/notes/filter/none" встановлюємо selectedTag у "Notes" == "All notes"
   useEffect(() => {
     if (pathname === "/" || pathname === "/notes/filter/none") {
       setSelectedTag("Notes");
     }
   }, [pathname]);
 
-  const filterPath = (
-    tag: (typeof tagsMenuList)[number],
-  ): Note["tag"] | "none" => {
-    return tag === "All notes" ? "none" : (tag as Note["tag"]);
+  const filterPath = (tag: (typeof tagsMenuList)[number]): Tags | "none" => {
+    return tag === "All notes" ? "none" : (tag as Tags);
   };
 
   const handleTagClick = (tag: (typeof tagsMenuList)[number]) => {

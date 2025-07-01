@@ -11,7 +11,8 @@ import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
-import NoteModal from "@/components/NoteModal/NoteModal";
+import NoteModal from "@/components/Modal/Modal";
+import NoteForm from "@/components/NoteForm/NoteForm";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
@@ -24,7 +25,7 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
   const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const apiTag = tag === "none" ? undefined : tag; // Map "none" to undefined for API
+  const apiTag = tag === "none" ? undefined : tag; // Робимо apiTag = undefined якщо tag = "none"
 
   const { data, error } = useQuery<FetchNotesResponse, Error>({
     queryKey: ["notes", { page, query: debouncedQuery, tag: apiTag }],
@@ -50,6 +51,10 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     setSearchQuery(value);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
@@ -67,7 +72,11 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
       </header>
       {data?.notes && data.notes.length > 0 && <NoteList notes={data.notes} />}
       {data?.notes && data.notes.length === 0 && <p>Nothing found</p>}
-      {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <NoteModal onClose={handleCloseModal}>
+          <NoteForm onClose={handleCloseModal} />
+        </NoteModal>
+      )}
     </div>
   );
 }

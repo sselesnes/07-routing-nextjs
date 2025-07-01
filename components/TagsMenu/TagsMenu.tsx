@@ -8,28 +8,38 @@ import { usePathname } from "next/navigation";
 import css from "./TagsMenu.module.css";
 import { TAGS, Tags } from "../../types/note";
 
-export default function TagsMenu({}) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<
-    "Notes" | (typeof tagsMenuList)[number]
-  >("Notes");
-  const pathname = usePathname();
-  const tagsMenuList = ["All notes", ...TAGS] as const;
+const ALL_NOTES = "All Notes" as const;
+const tagsMenuList = [ALL_NOTES, ...TAGS] as const;
+type TagsMenuOption = (typeof tagsMenuList)[number];
 
-  // При зміні маршруту на Home або "/notes/filter/none" встановлюємо selectedTag у "Notes" == "All notes"
+export default function TagsMenu() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<TagsMenuOption>(ALL_NOTES);
+  const pathname = usePathname();
+
   useEffect(() => {
     if (pathname === "/" || pathname === "/notes/filter/none") {
-      setSelectedTag("Notes");
+      setSelectedTag(ALL_NOTES);
+    } else {
+      const match = pathname.match(/^\/notes\/filter\/(.+)$/);
+      const tag = match?.[1] as Tags | undefined;
+      if (tag && TAGS.includes(tag)) {
+        setSelectedTag(tag as TagsMenuOption);
+      }
     }
   }, [pathname]);
 
-  const filterPath = (tag: (typeof tagsMenuList)[number]): Tags | "none" => {
-    return tag === "All notes" ? "none" : (tag as Tags);
+  const getFilterPath = (tag: TagsMenuOption): Tags | "none" => {
+    return tag === ALL_NOTES ? "none" : tag;
   };
 
-  const handleTagClick = (tag: (typeof tagsMenuList)[number]) => {
-    setSelectedTag(tag === "All notes" ? "Notes" : tag);
+  const handleTagClick = (tag: TagsMenuOption) => {
+    setSelectedTag(tag);
     setIsMenuOpen(false);
+  };
+
+  const getMenuButtonLabel = (tag: TagsMenuOption) => {
+    return tag === ALL_NOTES ? "Notes" : tag;
   };
 
   const toggleMenu = () => {
@@ -39,19 +49,16 @@ export default function TagsMenu({}) {
   return (
     <div className={css.menuContainer}>
       <button className={css.menuButton} onClick={toggleMenu}>
-        {selectedTag} ▾
+        {getMenuButtonLabel(selectedTag)} ▾
       </button>
       {isMenuOpen && (
         <ul className={css.menuList}>
           {tagsMenuList.map((tag) => (
             <li key={tag} className={css.menuItem}>
               <Link
-                href={`/notes/filter/${filterPath(tag)}`}
+                href={`/notes/filter/${getFilterPath(tag)}`}
                 className={`${css.menuLink} ${
-                  (tag === "All notes" && selectedTag === "Notes") ||
-                  selectedTag === tag
-                    ? css.active
-                    : ""
+                  selectedTag === tag ? css.active : ""
                 }`}
                 onClick={() => handleTagClick(tag)}
               >

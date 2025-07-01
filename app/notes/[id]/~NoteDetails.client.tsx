@@ -10,8 +10,10 @@ import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateNote } from "@/lib/api";
 import type { PaginatedNotes } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function NoteDetailsClient({ id }: { id: number }) {
+  const router = useRouter();
   const { data: note } = useQuery<Note, Error>({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
@@ -97,7 +99,7 @@ export default function NoteDetailsClient({ id }: { id: number }) {
   };
 
   const handleClose = () => {
-    window.history.back(); // Повернення на попередню сторінку
+    router.back(); // Повернення на попередню сторінку
   };
 
   return (

@@ -3,6 +3,7 @@
 "use client";
 
 import css from "./NotesPage.module.css";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
@@ -11,8 +12,9 @@ import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
-import NoteModal from "@/components/Modal/Modal";
+import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import NotePreview from "@/components/NotePreview/NotePreview";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
@@ -23,9 +25,11 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(searchQuery, 500);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
 
-  const apiTag = tag === "none" ? undefined : tag; // Робимо apiTag = undefined якщо tag = "none"
+  const apiTag = tag === "none" ? undefined : tag;
+  const router = useRouter();
 
   const { data, error } = useQuery<FetchNotesResponse, Error>({
     queryKey: ["notes", { page, query: debouncedQuery, tag: apiTag }],
@@ -51,8 +55,17 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     setSearchQuery(value);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleClosePreviewModal = () => {
+    setSelectedNoteId(null); // Close modal without changing URL
+  };
+
+  const handleViewDetails = (id: number) => {
+    setSelectedNoteId(id); // Open modal
+    router.push(`/notes/${id}`, { scroll: false });
   };
 
   return (
@@ -66,16 +79,31 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
             currentPage={page - 1}
           />
         )}
-        <button className={css.button} onClick={() => setIsModalOpen(true)}>
+        <button
+          className={css.button}
+          onClick={() => setIsCreateModalOpen(true)}
+        >
           Create note +
         </button>
       </header>
-      {data?.notes && data.notes.length > 0 && <NoteList notes={data.notes} />}
+      {data?.notes && data.notes.length > 0 && (
+        <NoteList notes={data.notes} onViewDetails={handleViewDetails} />
+      )}
       {data?.notes && data.notes.length === 0 && <p>Nothing found</p>}
-      {isModalOpen && (
-        <NoteModal onClose={handleCloseModal}>
-          <NoteForm onClose={handleCloseModal} />
-        </NoteModal>
+      {isCreateModalOpen && (
+        <Modal onClose={handleCloseCreateModal}>
+          <NoteForm onClose={handleCloseCreateModal} />
+        </Modal>
+      )}
+      {selectedNoteId && (
+        <Modal onClose={handleClosePreviewModal}>
+          <NotePreview
+            id={selectedNoteId}
+            onClose={handleClosePreviewModal}
+            tag={tag}
+            page={page}
+          />
+        </Modal>
       )}
     </div>
   );

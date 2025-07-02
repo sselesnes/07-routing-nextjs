@@ -7,22 +7,20 @@ import NotePreview from "@/components/NotePreview/NotePreview";
 
 interface NotePreviewModalProps {
   id: number;
-  tag?: string; // Current filter tag
-  page?: number; // Current page number
+  tag?: string;
+  page?: number;
+  onClose: () => void;
 }
 
 export default function NotePreviewModal({
   id,
   tag,
   page,
+  onClose,
 }: NotePreviewModalProps) {
-  const handleCloseModal = () => {
-    // Close modal without changing URL
-  };
-
   return (
-    <Modal onClose={handleCloseModal}>
-      <NotePreview id={id} onClose={handleCloseModal} tag={tag} page={page} />
+    <Modal onClose={onClose}>
+      <NotePreview id={id} onClose={onClose} />
     </Modal>
   );
 }

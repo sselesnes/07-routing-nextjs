@@ -1,41 +1,63 @@
-//notes/[id]/page.tsx
+// notes/[id]/page.tsx
 
+import { fetchNoteById, fetchNotes } from "@/lib/api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api";
-import NotePreviewModal from "./NotePreviewModal.client";
 import { QueryClient } from "@tanstack/react-query";
+import NotesClient from "../filter/[...slug]/Notes.client";
+import styles from "../filter/[...slug]/NotesPage.module.css";
+import type { FetchNotesResponse } from "@/lib/api";
+
+interface NoteDetailsProps {
+  params: Promise<{ id: string }>;
+  tag?: string;
+  page?: number;
+}
 
 export default async function NoteDetails({
   params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ tag?: string; page?: string }>;
-}) {
+  tag,
+  page,
+}: NoteDetailsProps) {
+  const queryClient = new QueryClient();
   const { id } = await params;
-  const { tag, page } = await searchParams;
 
-  const numericId = parseInt(id, 10);
-  if (isNaN(numericId)) {
+  const noteId = parseInt(id, 10);
+  if (isNaN(noteId)) {
     return <p>Invalid note ID</p>;
   }
 
-  const queryClient = new QueryClient();
-
+  // Prefetch note data
   await queryClient.prefetchQuery({
-    queryKey: ["note", numericId],
-    queryFn: () => fetchNoteById(numericId),
+    queryKey: ["note", noteId],
+    queryFn: () => fetchNoteById(noteId),
   });
 
-  const note = await fetchNoteById(numericId);
+  // Use tag and page from props, default to undefined and 1 for direct access
+  const apiTag = tag === "none" ? undefined : tag;
+  const pageNumber = page && !isNaN(page) ? page : 1;
+  const isDirectAccess = !tag && !page; // Direct access if tag and page are not provided
+
+  // Fetch notes for NoteList
+  const initialData: FetchNotesResponse = await fetchNotes({
+    page: pageNumber,
+    query: "",
+    perPage: 12,
+    tag: apiTag,
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotePreviewModal
-        id={numericId}
-        tag={tag || note?.tag || undefined}
-        page={page ? parseInt(page, 10) : 1}
-      />
+      <div className={styles.notesPageWrapper}>
+        <div className={styles.pageContainer}>
+          <NotesClient
+            initialData={initialData}
+            tag={apiTag}
+            noteId={noteId}
+            page={pageNumber}
+            isDirectAccess={isDirectAccess}
+          />
+        </div>
+      </div>
     </HydrationBoundary>
   );
 }

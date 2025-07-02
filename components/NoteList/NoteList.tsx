@@ -10,10 +10,17 @@ import { useRouter } from "next/navigation";
 
 interface NoteListProps {
   notes: Note[];
-  onViewDetails: (id: number) => void;
+  tag?: string;
+  page: number;
+  onViewDetails: (id: number, tag?: string, page?: number) => void;
 }
 
-export default function NoteList({ notes, onViewDetails }: NoteListProps) {
+export default function NoteList({
+  notes,
+  tag,
+  page,
+  onViewDetails,
+}: NoteListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const deleteMutation = useMutation({
@@ -28,8 +35,8 @@ export default function NoteList({ notes, onViewDetails }: NoteListProps) {
   };
 
   const handleViewDetails = (id: number) => {
-    router.push(`/notes/${id}`); // Change URL and add to history
-    onViewDetails(id); // Trigger modal opening
+    router.push(`/notes/${id}`);
+    onViewDetails(id, tag, page);
   };
 
   return (

@@ -1,4 +1,4 @@
-//layout.tsx
+// layout.tsx
 
 import type { Metadata } from "next";
 import "./globals.css";
@@ -10,17 +10,21 @@ export const metadata: Metadata = {
   title: "07-routing-nextjs",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+type Props = {
   children: React.ReactNode;
-}>) {
+  modal: React.ReactNode;
+};
+
+export default function NotesLayout({ children, modal }: Props) {
   return (
     <html lang="en">
       <body>
         <TanStackProvider>
           <Header />
-          <main>{children}</main>
+          <main>
+            {children}
+            {modal}
+          </main>
           <Footer />
         </TanStackProvider>
       </body>

@@ -1,61 +1,57 @@
-// notes/[id]/page.tsx
+// app/notes/[id]/page.tsx
 
 import { fetchNoteById, fetchNotes } from "@/lib/api";
+import type { FetchNotesResponse } from "@/lib/api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/react-query";
-import NotesClient from "../filter/[...slug]/Notes.client";
-import styles from "../filter/[...slug]/NotesPage.module.css";
-import type { FetchNotesResponse } from "@/lib/api";
+import NotesClient from "../filter/[...slug]/Notes.client"; // Ваш основний клієнтський компонент списку
+import NotePreviewModal from "@/components/NotePreview/NotePreviewModal.client"; // Новий шлях імпорту для модалки
+import styles from "../filter/[...slug]/NotesPage.module.css"; // Можливо, варто розглянути переміщення цього CSS до глобального або до кореня NotesClient
 
-interface NoteDetailsProps {
-  params: Promise<{ id: string }>;
-  tag?: string;
-  page?: number;
+interface NoteDetailsPageProps {
+  params: { id: string }; // Очікуємо, що params вже розв'язаний об'єкт
 }
 
-export default async function NoteDetails({
+export default async function NoteDetailsPage({
   params,
-  tag,
-  page,
-}: NoteDetailsProps) {
+}: NoteDetailsPageProps) {
   const queryClient = new QueryClient();
-  const { id } = await params;
+  const noteId = parseInt(params.id, 10); // Використовуємо params.id без await
 
-  const noteId = parseInt(id, 10);
   if (isNaN(noteId)) {
     return <p>Invalid note ID</p>;
   }
 
-  // Prefetch note data
+  // Prefetch data for the specific note (for the modal)
   await queryClient.prefetchQuery({
     queryKey: ["note", noteId],
     queryFn: () => fetchNoteById(noteId),
   });
 
-  // Use tag and page from props, default to undefined and 1 for direct access
-  const apiTag = tag === "none" ? undefined : tag;
-  const pageNumber = page && !isNaN(page) ? page : 1;
-  const isDirectAccess = !tag && !page; // Direct access if tag and page are not provided
+  // Prefetch data for the background NotesClient (default to All notes, page 1)
+  const defaultTag = undefined; // Відповідає 'All' в URL
+  const defaultPage = 1;
 
-  // Fetch notes for NoteList
-  const initialData: FetchNotesResponse = await fetchNotes({
-    page: pageNumber,
+  const initialDataForBackground: FetchNotesResponse = await fetchNotes({
+    page: defaultPage,
     query: "",
     perPage: 12,
-    tag: apiTag,
+    tag: defaultTag,
   });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className={styles.notesPageWrapper}>
         <div className={styles.pageContainer}>
+          {/* Рендеримо фоновий список нотаток */}
           <NotesClient
-            initialData={initialData}
-            tag={apiTag}
-            noteId={noteId}
-            page={pageNumber}
-            isDirectAccess={isDirectAccess}
+            initialData={initialDataForBackground}
+            tag={defaultTag}
+            page={defaultPage}
           />
+          {/* Рендеримо модальне вікно поверх фону */}
+          {/* Не передаємо onClose з Server Component */}
+          <NotePreviewModal id={noteId} />
         </div>
       </div>
     </HydrationBoundary>

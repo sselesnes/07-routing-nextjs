@@ -1,45 +1,42 @@
-//notes/filter/[...slug]/Notes.client.tsx
+// notes/filter/[...slug]/Notes.client.tsx
 
 "use client";
 
-import css from "./NotesPage.module.css";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+
 import SearchBox from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
-import { fetchNotes } from "@/lib/api";
-import type { FetchNotesResponse } from "@/lib/api";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
-import NotePreviewModal from "../../[id]/NotePreviewModal.client";
+
+import { fetchNotes } from "@/lib/api";
+import type { FetchNotesResponse } from "@/lib/api";
+
+import css from "./NotesPage.module.css";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
   tag?: string;
-  noteId?: number;
   page?: number;
-  isDirectAccess?: boolean;
 }
 
 export default function NotesClient({
   initialData,
   tag,
-  noteId,
   page = 1,
-  isDirectAccess = false,
 }: NotesClientProps) {
   const [currentPage, setCurrentPage] = useState(page);
   const [currentTag, setCurrentTag] = useState(tag);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(
-    noteId || null,
-  );
+
   const router = useRouter();
+  const pathname = usePathname();
 
   const apiTag = currentTag;
 
@@ -60,40 +57,56 @@ export default function NotesClient({
       currentPage === 1 && debouncedQuery === "" && apiTag === initialData.tag
         ? initialData
         : undefined,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (error) {
     throw error;
   }
 
-  const handlePageChange = (selectedItem: { selected: number }) => {
-    setCurrentPage(selectedItem.selected + 1);
-  };
+  const generateUrlPath = useCallback(
+    (tag: string | undefined, page: number): string => {
+      const tagSegment = tag || "All"; // Використовуємо 'All' у URL
+      if (page === 1) {
+        return `/notes/filter/${tagSegment}`;
+      }
+      return `/notes/filter/${tagSegment}/${page}`;
+    },
+    [],
+  );
 
-  const handleSearchChange = (value: string) => {
+  useEffect(() => {
+    const newPath = generateUrlPath(currentTag, currentPage);
+    if (pathname !== newPath) {
+      router.push(newPath);
+    }
+  }, [currentTag, currentPage, pathname, router, generateUrlPath]);
+
+  const handlePageChange = useCallback((selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setCurrentPage(newPage);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
     setCurrentPage(1);
     setSearchQuery(value);
-  };
+  }, []);
 
-  const handleCloseCreateModal = () => {
+  const handleCloseCreateModal = useCallback(() => {
     setIsCreateModalOpen(false);
-  };
+  }, []);
 
-  const handleViewDetails = (id: number, tag?: string, page?: number) => {
-    setSelectedNoteId(id);
-    setCurrentTag(tag);
-    setCurrentPage(page || 1);
-    router.push(`/notes/${id}`);
-  };
-
-  const handleCloseNotePreview = () => {
-    setSelectedNoteId(null);
-    if (isDirectAccess) {
-      router.replace("/notes/filter/none"); // Navigate to /notes/filter/none for direct access
-    } else {
-      router.replace(`/notes/filter/${currentTag || "none"}`); // Navigate back to /notes/filter/[tag]
-    }
-  };
+  const handleViewDetails = useCallback(
+    (id: number) => {
+      // Тут ми просто переходимо на URL нотатки.
+      // Intercepting Route (@note-modal/(.)notes/[id]) перехопить цей перехід,
+      // якщо ми вже на /notes/filter/... і відкриє модалку.
+      // Якщо ми не на /notes/filter/..., то це буде звичайний перехід на сторінку /notes/[id].
+      router.push(`/notes/${id}`);
+    },
+    [router],
+  );
 
   return (
     <div className={css.app}>
@@ -113,6 +126,7 @@ export default function NotesClient({
           Create note +
         </button>
       </header>
+
       {data?.notes && data.notes.length > 0 && (
         <NoteList
           notes={data.notes}
@@ -122,18 +136,11 @@ export default function NotesClient({
         />
       )}
       {data?.notes && data.notes.length === 0 && <p>Nothing found</p>}
+
       {isCreateModalOpen && (
         <Modal onClose={handleCloseCreateModal}>
           <NoteForm onClose={handleCloseCreateModal} />
         </Modal>
-      )}
-      {selectedNoteId && (
-        <NotePreviewModal
-          id={selectedNoteId}
-          tag={currentTag}
-          page={currentPage}
-          onClose={handleCloseNotePreview}
-        />
       )}
     </div>
   );

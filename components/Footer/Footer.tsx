@@ -1,7 +1,7 @@
 //Footer.tsx
 
-import React from "react";
 import css from "./Footer.module.css";
+import React from "react";
 
 export default function Footer({}) {
   return (

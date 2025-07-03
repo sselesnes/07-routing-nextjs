@@ -6,7 +6,7 @@ import css from "./NoteList.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteNote } from "@/lib/api";
 import type { Note } from "@/types/note";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface NoteListProps {
   notes: Note[];
@@ -23,6 +23,7 @@ export default function NoteList({
 }: NoteListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const pathname = usePathname();
   const deleteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
@@ -35,7 +36,12 @@ export default function NoteList({
   };
 
   const handleViewDetails = (id: number) => {
-    router.push(`/notes/${id}`);
+    const currentPath = pathname;
+    if (!currentPath.startsWith("/notes/filter/")) {
+      router.push(`/notes/${id}`);
+    } else {
+      router.push(`/notes/${id}`, { scroll: false }); // Попереджає повне оновлення сторінки
+    }
     onViewDetails(id, tag, page);
   };
 

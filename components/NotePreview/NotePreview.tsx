@@ -16,7 +16,15 @@ export default function NotePreview({ id, onClose }: NotePreviewProps) {
   const { data: note } = useQuery<Note, Error>({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
+    initialData: () => {
+      const queryClient = new QueryClient();
+      return dehydrate(queryClient).queries.find(
+        (q) => q.queryKey[0] === "note" && q.queryKey[1] === id,
+      )?.state.data;
+    },
     refetchOnMount: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
 
   if (!note) {

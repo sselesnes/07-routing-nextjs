@@ -1,18 +1,22 @@
-//Notes/filter/[...slug]/page.tsx
+// Notes/filter/[...slug]/page.tsx
 
 import NotesClient from "./Notes.client";
-import styles from "./NotesPage.module.css";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
 
 interface NotesPageProps {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ slug: string[] }>;
 }
 
 export default async function NotesPage({ params }: NotesPageProps) {
   const { slug } = await params;
-  const tag = slug?.[0] === "none" ? undefined : slug?.[0];
-  const pageNumber = 1; // Default page for initial render
+  const currentSlug = slug || [];
+
+  const tag =
+    currentSlug[0] === "All"
+      ? undefined
+      : (currentSlug[0] as string | undefined);
+  const pageNumber = currentSlug[1] ? parseInt(currentSlug[1], 10) : 1;
 
   const initialData: FetchNotesResponse = await fetchNotes({
     page: pageNumber,
@@ -21,17 +25,5 @@ export default async function NotesPage({ params }: NotesPageProps) {
     tag,
   });
 
-  return (
-    <div className={styles.notesPageWrapper}>
-      <div className={styles.pageContainer}>
-        <NotesClient
-          initialData={initialData}
-          tag={tag}
-          noteId={undefined}
-          page={pageNumber}
-          isDirectAccess={false}
-        />
-      </div>
-    </div>
-  );
+  return <NotesClient initialData={initialData} tag={tag} page={pageNumber} />;
 }

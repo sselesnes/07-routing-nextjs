@@ -20,7 +20,7 @@ export default function Modal({ onClose, children }: ModalProps) {
     document.body.style.overflow = "hidden";
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isMounted.current) {
-        console.log("Escape pressed, closing modal");
+        console.log("Escape pressed in Modal, calling onClose");
         onClose();
       }
     };
@@ -34,7 +34,7 @@ export default function Modal({ onClose, children }: ModalProps) {
 
   const handleBackdropClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget && isMounted.current) {
-      console.log("Backdrop clicked, closing modal");
+      console.log("Backdrop clicked in Modal, calling onClose");
       onClose();
     }
   };

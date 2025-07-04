@@ -11,14 +11,25 @@ export default function NoteDetailsPageModal() {
   const currentPath = usePathname();
   const router = useRouter();
 
-  const pathOnMount = currentPath;
+  const handleCloseModal = useCallback(() => {
+    console.log(
+      "handleCloseModal called, current path:",
+      currentPath,
+      "Is this manual? Check Modal events",
+    );
+    setTimeout(() => {
+      console.log("Executing router.back(), current path:", currentPath);
+      router.back();
+    }, 1000);
+  }, [currentPath, router]);
 
   useEffect(() => {
-    console.log("Modal mounted, current path:", pathOnMount);
-    return () => console.log("Modal unmounted, current path:", pathOnMount);
-  }, [pathOnMount]);
+    console.log("Modal mounted, current path:", currentPath);
+    return () => console.log("Modal unmounted, current path:", currentPath);
+  }, [currentPath]);
 
   if (!currentPath) {
+    console.log("No current path, returning null");
     return null;
   }
 
@@ -35,14 +46,6 @@ export default function NoteDetailsPageModal() {
   }
 
   const noteId: number = parseFloat(lastSegment);
-
-  const handleCloseModal = useCallback(() => {
-    console.log("Closing modal, current path:", currentPath);
-    // Додаємо затримку для діагностики
-    setTimeout(() => {
-      router.back();
-    }, 1000); // Затримка 1 секунда
-  }, [currentPath, router]);
 
   return (
     <Modal onClose={handleCloseModal}>

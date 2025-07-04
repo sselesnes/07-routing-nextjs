@@ -99,10 +99,6 @@ export default function NotesClient({
 
   const handleViewDetails = useCallback(
     (id: number) => {
-      // Тут ми просто переходимо на URL нотатки.
-      // Intercepting Route (@note-modal/(.)notes/[id]) перехопить цей перехід,
-      // якщо ми вже на /notes/filter/... і відкриє модалку.
-      // Якщо ми не на /notes/filter/..., то це буде звичайний перехід на сторінку /notes/[id].
       router.push(`/notes/${id}`);
     },
     [router],

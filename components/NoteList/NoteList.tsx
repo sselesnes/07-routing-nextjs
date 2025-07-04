@@ -19,11 +19,11 @@ export default function NoteList({
   notes,
   tag,
   page,
-  onViewDetails,
+  // onViewDetails,
 }: NoteListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const pathname = usePathname();
+  // const pathname = usePathname();
   const deleteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
@@ -36,13 +36,13 @@ export default function NoteList({
   };
 
   const handleViewDetails = (id: number) => {
-    const currentPath = pathname;
-    if (!currentPath.startsWith("/notes/filter/")) {
-      router.push(`/notes/${id}`);
-    } else {
-      router.push(`/notes/${id}`, { scroll: false }); // Попереджає повне оновлення сторінки
-    }
-    onViewDetails(id, tag, page);
+    // const currentPath = pathname;
+    // if (!currentPath.startsWith("/notes/filter/")) {
+    router.push(`/notes/${id}`);
+    // } else {
+    //   router.push(`/notes/${id}`, { scroll: false }); // Попереджає повне оновлення сторінки
+    // }
+    // onViewDetails(id, tag, page);
   };
 
   return (

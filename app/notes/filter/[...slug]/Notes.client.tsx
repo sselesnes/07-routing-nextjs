@@ -67,7 +67,7 @@ export default function NotesClient({
 
   const generateUrlPath = useCallback(
     (tag: string | undefined, page: number): string => {
-      const tagSegment = tag || "All"; // Використовуємо 'All' у URL
+      const tagSegment = tag || "All";
       if (page === 1) {
         return `/notes/filter/${tagSegment}`;
       }
@@ -78,7 +78,7 @@ export default function NotesClient({
 
   useEffect(() => {
     const newPath = generateUrlPath(currentTag, currentPage);
-    if (pathname !== newPath) {
+    if (pathname !== newPath && !pathname.startsWith("/notes/")) {
       router.push(newPath);
     }
   }, [currentTag, currentPage, pathname, router, generateUrlPath]);
@@ -99,7 +99,7 @@ export default function NotesClient({
 
   const handleViewDetails = useCallback(
     (id: number) => {
-      router.push(`/notes/${id}`);
+      router.push(`/notes/${id}`, { scroll: false });
     },
     [router],
   );

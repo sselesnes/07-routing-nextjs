@@ -3,7 +3,7 @@
 "use client";
 
 import css from "./Modal.module.css";
-import { useEffect, ReactNode } from "react";
+import { useEffect, ReactNode, useRef } from "react";
 import { createPortal } from "react-dom";
 
 export interface ModalProps {
@@ -12,21 +12,31 @@ export interface ModalProps {
 }
 
 export default function Modal({ onClose, children }: ModalProps) {
+  const isMounted = useRef(false);
+
   useEffect(() => {
+    isMounted.current = true;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && isMounted.current) {
+        console.log("Escape pressed, closing modal");
+        onClose();
+      }
     };
     document.addEventListener("keydown", handleEscape);
     return () => {
+      isMounted.current = false;
       document.body.style.overflow = originalOverflow;
       document.removeEventListener("keydown", handleEscape);
     };
   }, [onClose]);
 
   const handleBackdropClick = (event: React.MouseEvent) => {
-    if (event.target === event.currentTarget) onClose();
+    if (event.target === event.currentTarget && isMounted.current) {
+      console.log("Backdrop clicked, closing modal");
+      onClose();
+    }
   };
 
   return createPortal(

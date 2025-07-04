@@ -53,6 +53,8 @@ export default function NoteDetailsClient({ id }: { id: number }) {
           return oldData;
         },
       );
+      // Додаємо інвалідацію кешу для перезапиту
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
       setIsEditing(false);
       setMutationError(null);
       handleClose();
@@ -99,7 +101,7 @@ export default function NoteDetailsClient({ id }: { id: number }) {
   };
 
   const handleClose = () => {
-    router.back(); // Повернення на попередню сторінку
+    router.back();
   };
 
   return (

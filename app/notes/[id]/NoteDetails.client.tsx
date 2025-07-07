@@ -1,10 +1,10 @@
-//NotePreview.client.tsx
+//app/notes/[id]/NoteDetails.client.tsx
 
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchNoteById } from "@/lib/api";
-import css from "./NotePreview.module.css";
+import css from "./NoteDetails.module.css";
 import type { Note } from "@/types/note";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

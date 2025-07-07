@@ -23,6 +23,7 @@ interface NotesClientProps {
   initialData: FetchNotesResponse;
   tag?: string;
   page?: number;
+  searchQuery?: string;
   isModalOpen?: boolean;
 }
 
@@ -30,18 +31,20 @@ export default function NotesClient({
   initialData,
   tag,
   page = 1,
+  searchQuery = "",
   isModalOpen,
 }: NotesClientProps) {
   const [currentPage, setCurrentPage] = useState(page);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery] = useDebounce(searchQuery, 500);
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const [debouncedQuery] = useDebounce(localSearchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null); // Ініціалізація без хуків
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
+  const [currentTag, setCurrentTag] = useState<string | undefined>(tag);
 
   const router = useRouter();
-  const pathname = usePathname(); // Виклик хука на верхньому рівні
+  const pathname = usePathname();
 
-  const apiTag = tag;
+  const apiTag = currentTag;
 
   const { data, error } = useQuery<FetchNotesResponse, Error>({
     queryKey: [
@@ -80,7 +83,7 @@ export default function NotesClient({
   );
 
   useEffect(() => {
-    const newPath = generateUrlPath(tag, currentPage);
+    const newPath = generateUrlPath(currentTag, currentPage);
     if (
       pathname !== newPath &&
       !pathname.startsWith("/notes/") &&
@@ -88,24 +91,30 @@ export default function NotesClient({
     ) {
       router.push(newPath);
     }
-    // Оновлення selectedNoteId на основі pathname і isModalOpen
     if (isModalOpen) {
       const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
-      if (!isNaN(idFromPath)) {
-        setSelectedNoteId(idFromPath);
-      }
+      if (!isNaN(idFromPath)) setSelectedNoteId(idFromPath);
     }
-  }, [tag, currentPage, pathname, router, generateUrlPath, isModalOpen]);
+  }, [currentTag, currentPage, pathname, router, generateUrlPath, isModalOpen]);
 
   const handlePageChange = useCallback((selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1;
-    setCurrentPage(newPage);
+    setCurrentPage(selectedItem.selected + 1);
   }, []);
 
-  const handleSearchChange = useCallback((value: string) => {
-    setCurrentPage(1);
-    setSearchQuery(value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setCurrentPage(1);
+      setLocalSearchQuery(value);
+      if (value && !debouncedQuery) {
+        setCurrentTag(undefined); // Скидання тега на "All"
+        router.push(`/notes/filter/All/${value}`); // Перехід із searchQuery
+      } else if (!value && debouncedQuery) {
+        setCurrentTag(tag); // Повернення до початкового тегу
+        router.push(`/notes/filter/${tag || "All"}`); // Повернення до початкового маршруту
+      }
+    },
+    [debouncedQuery, router, tag],
+  );
 
   const handleCloseCreateModal = useCallback(() => {
     setIsCreateModalOpen(false);
@@ -124,14 +133,14 @@ export default function NotesClient({
     if (window.history.length > 2) {
       router.back();
     } else {
-      router.push("/notes/filter/All");
+      router.push(`/notes/filter/${tag || "All"}`);
     }
-  }, [router]);
+  }, [router, tag]);
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={searchQuery} onChange={handleSearchChange} />
+        <SearchBox value={localSearchQuery} onChange={handleSearchChange} />
         {data && data.totalPages > 1 && (
           <Pagination
             pageCount={data.totalPages}
@@ -146,23 +155,21 @@ export default function NotesClient({
           Create note +
         </button>
       </header>
-
-      {data?.notes && data.notes.length > 0 && (
+      {data?.notes && data.notes.length > 0 ? (
         <NoteList
           notes={data.notes}
-          tag={tag}
+          tag={currentTag}
           page={currentPage}
           onViewDetails={handleViewDetails}
         />
+      ) : (
+        <p>Nothing found</p>
       )}
-      {data?.notes && data.notes.length === 0 && <p>Nothing found</p>}
-
       {isCreateModalOpen && (
         <Modal onClose={handleCloseCreateModal}>
           <NoteForm onClose={handleCloseCreateModal} />
         </Modal>
       )}
-
       {selectedNoteId && (
         <Modal onClose={handleCloseModal}>
           <NotePreviewClient id={selectedNoteId} />

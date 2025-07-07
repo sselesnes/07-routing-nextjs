@@ -11,19 +11,29 @@ interface NotesPageProps {
 export default async function NotesPage({ params }: NotesPageProps) {
   const { slug } = await params;
   const currentSlug = slug || [];
-
-  const tag =
+  let tag =
     currentSlug[0] === "All"
       ? undefined
       : (currentSlug[0] as string | undefined);
-  const pageNumber = currentSlug[1] ? parseInt(currentSlug[1], 10) : 1;
+  const pageNumber = 1;
+  const searchQuery = currentSlug[1];
+  if (!searchQuery) {
+    tag = "none";
+  }
 
   const initialData: FetchNotesResponse = await fetchNotes({
     page: pageNumber,
-    query: "",
+    query: searchQuery,
     perPage: 12,
     tag,
   });
 
-  return <NotesClient initialData={initialData} tag={tag} page={pageNumber} />;
+  return (
+    <NotesClient
+      initialData={initialData}
+      tag={tag}
+      page={pageNumber}
+      searchQuery={searchQuery}
+    />
+  );
 }

@@ -17,7 +17,7 @@ export default async function NotesPage({ params }: NotesPageProps) {
       : (currentSlug[0] as string | undefined);
   const pageNumber = 1;
   const searchQuery = currentSlug[1];
-  if (!searchQuery) {
+  if (searchQuery) {
     tag = "none";
   }
 

@@ -16,6 +16,7 @@ import NotePreviewClient from "@/components/NotePreview/NotePreview.client";
 
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
+import { Tags } from "@/types/note";
 
 import css from "./NotesPage.module.css";
 
@@ -72,18 +73,15 @@ export default function NotesClient({
   }
 
   const generateUrlPath = useCallback(
-    (tag: string | undefined, page: number): string => {
+    (tag: Tags | "All" | undefined): string => {
       const tagSegment = tag || "All";
-      if (page === 1) {
-        return `/notes/filter/${tagSegment}`;
-      }
-      return `/notes/filter/${tagSegment}/${page}`;
+      return `/notes/filter/${tagSegment}`;
     },
     [],
   );
 
   useEffect(() => {
-    const newPath = generateUrlPath(currentTag, currentPage);
+    const newPath = generateUrlPath(currentTag as Tags | "All" | undefined);
     if (
       pathname !== newPath &&
       !pathname.startsWith("/notes/") &&
@@ -95,7 +93,7 @@ export default function NotesClient({
       const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
       if (!isNaN(idFromPath)) setSelectedNoteId(idFromPath);
     }
-  }, [currentTag, currentPage, pathname, router, generateUrlPath, isModalOpen]);
+  }, [currentTag, pathname, router, generateUrlPath, isModalOpen]);
 
   const handlePageChange = useCallback((selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected + 1);

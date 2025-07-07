@@ -8,9 +8,10 @@ import styles from "../filter/[...slug]/NotesPage.module.css";
 export default async function NoteDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const noteId = parseInt(params.id, 10);
+  const resolvedParams = await params;
+  const noteId = parseInt(resolvedParams.id, 10);
 
   if (isNaN(noteId)) {
     return <p>Invalid note ID</p>;
@@ -26,6 +27,9 @@ export default async function NoteDetailsPage({
     tag: defaultTag,
   });
 
+  // Перевірка, чи це прямий вхід (без попереднього контексту)
+  const isDirectEntry = !process.env.NEXT_PUBLIC_IS_PRELOADED; // Ви можете додати цю змінну або логіку на основі контексту
+
   return (
     <div className={styles.notesPageWrapper}>
       <div className={styles.pageContainer}>
@@ -33,6 +37,7 @@ export default async function NoteDetailsPage({
           initialData={initialData}
           tag={defaultTag}
           page={defaultPage}
+          isModalOpen={isDirectEntry ? true : undefined} // Передаємо стан для модалки
         />
       </div>
     </div>

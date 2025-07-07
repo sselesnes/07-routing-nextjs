@@ -12,6 +12,7 @@ import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import NotePreviewClient from "@/components/NotePreview/NotePreview.client";
 
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
@@ -22,18 +23,23 @@ interface NotesClientProps {
   initialData: FetchNotesResponse;
   tag?: string;
   page?: number;
+  isModalOpen?: boolean;
 }
 
 export default function NotesClient({
   initialData,
   tag,
   page = 1,
+  isModalOpen,
 }: NotesClientProps) {
   const [currentPage, setCurrentPage] = useState(page);
   const [currentTag, setCurrentTag] = useState(tag);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(
+    isModalOpen ? parseInt(usePathname().split("/").pop() || "0", 10) : null,
+  );
 
   const router = useRouter();
   const pathname = usePathname();
@@ -78,7 +84,11 @@ export default function NotesClient({
 
   useEffect(() => {
     const newPath = generateUrlPath(currentTag, currentPage);
-    if (pathname !== newPath && !pathname.startsWith("/notes/")) {
+    if (
+      pathname !== newPath &&
+      !pathname.startsWith("/notes/") &&
+      pathname !== "/"
+    ) {
       router.push(newPath);
     }
   }, [currentTag, currentPage, pathname, router, generateUrlPath]);
@@ -99,10 +109,16 @@ export default function NotesClient({
 
   const handleViewDetails = useCallback(
     (id: number) => {
+      setSelectedNoteId(id);
       router.push(`/notes/${id}`, { scroll: false });
     },
     [router],
   );
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedNoteId(null);
+    router.back();
+  }, [router]);
 
   return (
     <div className={css.app}>
@@ -136,6 +152,12 @@ export default function NotesClient({
       {isCreateModalOpen && (
         <Modal onClose={handleCloseCreateModal}>
           <NoteForm onClose={handleCloseCreateModal} />
+        </Modal>
+      )}
+
+      {selectedNoteId && (
+        <Modal onClose={handleCloseModal}>
+          <NotePreviewClient id={selectedNoteId} />
         </Modal>
       )}
     </div>

@@ -121,7 +121,11 @@ export default function NotesClient({
 
   const handleCloseModal = useCallback(() => {
     setSelectedNoteId(null);
-    router.back();
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push("/notes/filter/All");
+    }
   }, [router]);
 
   return (

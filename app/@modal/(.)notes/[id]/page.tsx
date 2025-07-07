@@ -5,33 +5,14 @@
 import { usePathname, useRouter } from "next/navigation";
 import Modal from "@/components/Modal/Modal";
 import NotePreviewClient from "@/components/NotePreview/NotePreview.client";
-import { useEffect, useCallback } from "react";
 
 export default function NoteDetailsPageModal() {
   const currentPath = usePathname();
   const router = useRouter();
 
-  const handleCloseModal = useCallback(() => {
-    console.log(
-      "handleCloseModal called, current path:",
-      currentPath,
-      "Is this manual? Check Modal events",
-    );
-    setTimeout(() => {
-      console.log("Executing router.back(), current path:", currentPath);
-      router.back();
-    }, 1000);
-  }, [currentPath, router]);
-
-  useEffect(() => {
-    console.log("Modal mounted, current path:", currentPath);
-    return () => console.log("Modal unmounted, current path:", currentPath);
-  }, [currentPath]);
-
-  if (!currentPath) {
-    console.log("No current path, returning null");
-    return null;
-  }
+  const handleCloseModal = () => {
+    router.back();
+  };
 
   const segments = currentPath.split("/");
   const lastSegment = segments[segments.length - 1];

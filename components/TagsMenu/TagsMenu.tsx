@@ -55,6 +55,11 @@ export default function TagsMenu() {
     const pathParts = pathname.split("/");
     const filterIndex = pathParts.indexOf("filter");
 
+    // Не оновлюємо selectedTag, якщо це маршрут модалки (/notes/[id])
+    if (pathname.startsWith("/notes/") && !pathname.includes("filter")) {
+      return; // Пропускаємо оновлення при відкритті модалки
+    }
+
     let currentPathTag: string | undefined;
 
     if (filterIndex > -1 && pathParts.length > filterIndex + 1) {

@@ -33,18 +33,15 @@ export default function NotesClient({
   isModalOpen,
 }: NotesClientProps) {
   const [currentPage, setCurrentPage] = useState(page);
-  const [currentTag, setCurrentTag] = useState(tag);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(
-    isModalOpen ? parseInt(usePathname().split("/").pop() || "0", 10) : null,
-  );
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null); // Ініціалізація без хуків
 
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname(); // Виклик хука на верхньому рівні
 
-  const apiTag = currentTag;
+  const apiTag = tag;
 
   const { data, error } = useQuery<FetchNotesResponse, Error>({
     queryKey: [
@@ -83,7 +80,7 @@ export default function NotesClient({
   );
 
   useEffect(() => {
-    const newPath = generateUrlPath(currentTag, currentPage);
+    const newPath = generateUrlPath(tag, currentPage);
     if (
       pathname !== newPath &&
       !pathname.startsWith("/notes/") &&
@@ -91,7 +88,14 @@ export default function NotesClient({
     ) {
       router.push(newPath);
     }
-  }, [currentTag, currentPage, pathname, router, generateUrlPath]);
+    // Оновлення selectedNoteId на основі pathname і isModalOpen
+    if (isModalOpen) {
+      const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
+      if (!isNaN(idFromPath)) {
+        setSelectedNoteId(idFromPath);
+      }
+    }
+  }, [tag, currentPage, pathname, router, generateUrlPath, isModalOpen]);
 
   const handlePageChange = useCallback((selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
@@ -142,7 +146,7 @@ export default function NotesClient({
       {data?.notes && data.notes.length > 0 && (
         <NoteList
           notes={data.notes}
-          tag={currentTag}
+          tag={tag}
           page={currentPage}
           onViewDetails={handleViewDetails}
         />

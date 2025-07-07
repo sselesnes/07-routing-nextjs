@@ -1,10 +1,10 @@
-// app/@modal/(.)notes/[id]/page.tsx
+// app/@modal/(.)notes/[id]/NotePreview.client.tsx
 
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
 import Modal from "@/components/Modal/Modal";
-import NotePreviewClient from "@/app/notes/[id]/NoteDetails.client";
+import NoteDetailsClient from "@/app/notes/[id]/NoteDetails.client";
 
 export default function NoteDetailsPageModal() {
   const currentPath = usePathname();
@@ -30,7 +30,7 @@ export default function NoteDetailsPageModal() {
 
   return (
     <Modal onClose={handleCloseModal}>
-      <NotePreviewClient id={noteId} />
+      <NoteDetailsClient id={noteId} />
     </Modal>
   );
 }

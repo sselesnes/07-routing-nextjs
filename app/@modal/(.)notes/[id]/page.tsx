@@ -4,7 +4,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Modal from "@/components/Modal/Modal";
-import NotePreviewClient from "@/components/NotePreview/NotePreview.client";
+import NotePreviewClient from "@/app/@modal/(.)notes/[id]/NotePreview.client";
 
 export default function NoteDetailsPageModal() {
   const currentPath = usePathname();

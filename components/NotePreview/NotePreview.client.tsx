@@ -1,17 +1,19 @@
-//notes\[id]\NotesDetails.client.tsx
+//NotePreview.client.tsx
 
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchNoteById } from "@/lib/api";
-import css from "./NoteDetails.module.css";
+import css from "./NotePreview.module.css";
 import type { Note } from "@/types/note";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateNote } from "@/lib/api";
 import type { PaginatedNotes } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function NoteDetailsClient({ id }: { id: number }) {
+  const router = useRouter();
   const { data: note } = useQuery<Note, Error>({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
@@ -51,6 +53,8 @@ export default function NoteDetailsClient({ id }: { id: number }) {
           return oldData;
         },
       );
+      // Додаємо інвалідацію кешу для перезапиту
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
       setIsEditing(false);
       setMutationError(null);
       handleClose();
@@ -97,7 +101,11 @@ export default function NoteDetailsClient({ id }: { id: number }) {
   };
 
   const handleClose = () => {
-    window.history.back(); // Повернення на попередню сторінку
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push("/notes/filter/All");
+    }
   };
 
   return (

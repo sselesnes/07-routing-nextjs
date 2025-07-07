@@ -35,6 +35,7 @@ export interface UpdateNoteParams extends CreateNoteParams {
 }
 
 const API_URL = "https://notehub-public.goit.study/api/notes";
+
 const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
 const api = axios.create({

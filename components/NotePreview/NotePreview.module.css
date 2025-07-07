@@ -16,7 +16,7 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   border-bottom: 1px solid #ddd;
   padding-bottom: 8px;
 }
@@ -54,6 +54,19 @@
   text-overflow: ellipsis;
 }
 
+/* .backBtn {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-block;
+  background-color: transparent;
+} */
+
 /* edit  */
 .closeBtn,
 .editBtn {
@@ -63,6 +76,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  min-width: 120px;
 }
 
 .editBtn:hover {

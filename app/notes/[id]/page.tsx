@@ -1,42 +1,45 @@
-//notes\[id]\page.tsx
+// app/notes/[id]/page.tsx
 
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api";
-import NoteDetailsClient from "./NoteDetails.client";
-import { QueryClient } from "@tanstack/react-query";
+import { fetchNotes } from "@/lib/api";
+import type { FetchNotesResponse } from "@/lib/api";
+import NotesClient from "../filter/[...slug]/Notes.client";
+import css from "../filter/[...slug]/NotesPage.module.css";
 
-export default async function NoteDetails({
+export default async function NoteDetailsPage({
   params,
 }: {
-  // Очікуємо params
   params: Promise<{ id: string }>;
 }) {
-  const queryClient = new QueryClient();
-
-  // Очікуємо на resolve об’єкта params
   const resolvedParams = await params;
+  const noteId = parseInt(resolvedParams.id, 10);
 
-  // Перевірка та валідація id перед асинхронними операціями
-  if (!resolvedParams?.id) {
+  if (isNaN(noteId)) {
     return <p>Invalid note ID</p>;
   }
 
-  const idString = resolvedParams.id;
-  const id = parseInt(idString, 10);
-
-  if (isNaN(id)) {
-    return <p>Invalid note ID</p>;
-  }
-
-  // Завантаження нотатки
-  await queryClient.prefetchQuery({
-    queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id),
+  // Передзагрузка фонового списку нотаток (наприклад, All notes, page 1)
+  const defaultTag = undefined;
+  const defaultPage = 1;
+  const initialData: FetchNotesResponse = await fetchNotes({
+    page: defaultPage,
+    query: "",
+    perPage: 12,
+    tag: defaultTag,
   });
 
+  // Перевірка, чи це прямий вхід (без попереднього контексту)
+  const isDirectEntry = !process.env.NEXT_PUBLIC_IS_PRELOADED;
+
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <NoteDetailsClient id={id} />
-    </HydrationBoundary>
+    <div className={css.notesPageWrapper}>
+      <div className={css.pageContainer}>
+        <NotesClient
+          initialData={initialData}
+          tag={defaultTag}
+          page={defaultPage}
+          isModalOpen={isDirectEntry ? true : undefined}
+        />
+      </div>
+    </div>
   );
 }

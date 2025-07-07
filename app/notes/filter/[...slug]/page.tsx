@@ -1,29 +1,39 @@
-//Notes/filter/[...slug]/page.tsx
+// Notes/filter/[...slug]/page.tsx
 
 import NotesClient from "./Notes.client";
-import styles from "./NotesPage.module.css";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
 
 interface NotesPageProps {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ slug: string[] }>;
 }
 
 export default async function NotesPage({ params }: NotesPageProps) {
-  const { slug } = await params; //
-  const tag = slug?.[0] === "All" ? undefined : slug?.[0]; // якщо tag="All" робимо замість нього undefined
+  const { slug } = await params;
+  const currentSlug = slug || [];
+  let tag =
+    currentSlug[0] === "All"
+      ? undefined
+      : (currentSlug[0] as string | undefined);
+  const pageNumber = 1;
+  const searchQuery = currentSlug[1];
+  if (searchQuery) {
+    tag = "none";
+  }
+
   const initialData: FetchNotesResponse = await fetchNotes({
-    page: 1,
-    query: "",
+    page: pageNumber,
+    query: searchQuery,
     perPage: 12,
-    tag, // якщо undefined - пропускаємо параметр
+    tag,
   });
 
   return (
-    <div className={styles.notesPageWrapper}>
-      <div className={styles.pageContainer}>
-        <NotesClient initialData={initialData} tag={slug?.[0]} />
-      </div>
-    </div>
+    <NotesClient
+      initialData={initialData}
+      tag={tag}
+      page={pageNumber}
+      searchQuery={searchQuery}
+    />
   );
 }

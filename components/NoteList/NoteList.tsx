@@ -1,17 +1,23 @@
-//NoteList.tsx
+// NoteList.tsx
+"use client";
 
 import css from "./NoteList.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteNote } from "@/lib/api";
 import type { Note } from "@/types/note";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface NoteListProps {
   notes: Note[];
+  tag?: string;
+  page: number;
+  onViewDetails: (id: number, tag?: string, page?: number) => void;
 }
 
 export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+
   const deleteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
@@ -23,17 +29,24 @@ export default function NoteList({ notes }: NoteListProps) {
     deleteMutation.mutate(id);
   };
 
+  const handleViewDetails = (id: number) => {
+    router.push(`/notes/${id}`);
+  };
+
   return (
     <ul className={css.list}>
       {notes.map((note) => (
         <li key={note.id} className={css.listItem}>
-          <h2 className={css.title}>{note.title}</h2>{" "}
+          <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
-            <Link href={`/notes/${note.id}`} className={css.detailsBtn}>
+            <button
+              className={css.detailsBtn}
+              onClick={() => handleViewDetails(note.id)}
+            >
               View details
-            </Link>
+            </button>
             <button
               className={css.deleteBtn}
               onClick={() => handleDelete(note.id)}

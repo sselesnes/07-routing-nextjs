@@ -5,7 +5,7 @@ import css from "./NoteList.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteNote } from "@/lib/api";
 import type { Note } from "@/types/note";
-import { useRouter } from "next/navigation"; // Removed usePathname as it's not directly needed here for navigation
+import { useRouter } from "next/navigation";
 
 interface NoteListProps {
   notes: Note[];
@@ -14,13 +14,7 @@ interface NoteListProps {
   onViewDetails: (id: number, tag?: string, page?: number) => void;
 }
 
-export default function NoteList({
-  notes,
-  // Removed unused props to simplify
-  // tag,
-  // page,
-  // onViewDetails, // Removed this prop as it's no longer necessary with direct router push
-}: NoteListProps) {
+export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -36,11 +30,7 @@ export default function NoteList({
   };
 
   const handleViewDetails = (id: number) => {
-    // Navigate using the intercepting route convention
-    // This tells Next.js to intercept the navigation to /notes/[id]
-    // when coming from the /notes/filter/[...slug] route,
-    // and render it in the @modal slot.
-    router.push(`/notes/${id}`, { scroll: false }); // Use scroll: false to prevent scrolling when modal opens
+    router.push(`/notes/${id}`);
   };
 
   return (

@@ -4,9 +4,9 @@ import css from "./Pagination.module.css";
 import ReactPaginate from "react-paginate";
 
 export interface PaginationProps {
-  pageCount: number; // Загальна кількість сторінок
-  onPageChange: (selectedItem: { selected: number }) => void; // Викликається при зміні сторінки, selectedItem - обрана сторінка
-  currentPage: number; // Поточна сторінка
+  pageCount: number;
+  onPageChange: (selectedItem: { selected: number }) => void;
+  currentPage: number;
 }
 
 export default function Pagination({

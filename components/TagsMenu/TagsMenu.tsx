@@ -50,14 +50,14 @@ export default function TagsMenu() {
   const [selectedTag, setSelectedTag] = useState<MenuTag>(ALL_NOTES);
   const pathname = usePathname();
 
-  // Ефект для ініціалізації вибраного тегу на основі поточного URL
+  // Отримуємо тег з поточного URL
   useEffect(() => {
     const pathParts = pathname.split("/");
     const filterIndex = pathParts.indexOf("filter");
 
     // Не оновлюємо selectedTag, якщо це маршрут модалки (/notes/[id])
     if (pathname.startsWith("/notes/") && !pathname.includes("filter")) {
-      return; // Пропускаємо оновлення при відкритті модалки
+      return;
     }
 
     let currentPathTag: string | undefined;

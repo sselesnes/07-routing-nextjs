@@ -27,7 +27,7 @@ export default function Modal({ onClose, children }: ModalProps) {
   }, []);
 
   if (!isMounted) {
-    return null; // Повертаємо null на сервері або до монтування
+    return null;
   }
 
   return createPortal(

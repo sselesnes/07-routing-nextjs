@@ -26,6 +26,8 @@ interface NotesClientProps {
 }
 
 export default function NotesClient({ initialData, tag }: NotesClientProps) {
+  // console.log(tag, initialData);
+
   const [currentPage, setCurrentPage] = useState(initialData.page || 1);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(localSearchQuery, 500);

@@ -3,24 +3,31 @@
 import NotesClient from "./Notes.client";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
-import { Tags } from "@/types/note";
+import { TAGS, Tags } from "@/types/note";
 
-interface NotesPageProps {
+interface NotesSlugProps {
   params: Promise<{ slug: string[] }>;
 }
 
-export default async function NotesPage({ params }: NotesPageProps) {
+export default async function NotesSlugPage({ params }: NotesSlugProps) {
   const { slug } = await params;
-  const currentSlug = slug || [];
-  let tag: Tags | undefined =
-    currentSlug[0] === "All" ? undefined : (currentSlug[0] as Tags | undefined);
-  const pageNumber = 1;
-  const searchQuery = currentSlug[1] || "";
+  // slug завжди масив у Next.js
 
-  if (searchQuery) {
-    tag = "none" as Tags | undefined;
+  let tag: Tags | undefined = undefined;
+  let searchQuery: string = "";
+  const currentSlug = slug[0];
+
+  if (currentSlug) {
+    if (TAGS.includes(currentSlug as Tags)) {
+      tag = currentSlug as Tags; // Точна відповідність тегу з великої літери
+    } else if (currentSlug === "All") {
+      tag = undefined; // якщо сегмент "All" -> tag = undefined
+    } else {
+      searchQuery = currentSlug; // Сегмент є пошуковий запит
+    }
   }
 
+  const pageNumber = 1;
   const initialData: FetchNotesResponse = await fetchNotes({
     page: pageNumber,
     query: searchQuery,
@@ -28,5 +35,5 @@ export default async function NotesPage({ params }: NotesPageProps) {
     tag,
   });
 
-  return <NotesClient initialData={initialData} tag={tag} />;
+  return <NotesClient initialData={initialData} tag={tag} />; // tag потрібен для рендера NotesClient
 }

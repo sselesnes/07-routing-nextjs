@@ -1,4 +1,4 @@
-//Modal.tsx
+// Modal.tsx
 
 "use client";
 
@@ -20,11 +20,19 @@ export default function Modal({ onClose, children }: ModalProps) {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+
     return () => {
       setIsMounted(false);
       document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [onClose]);
 
   if (!isMounted) {
     return null;

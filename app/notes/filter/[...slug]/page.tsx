@@ -1,8 +1,9 @@
-// Notes/filter/[...slug]/page.tsx
+// app/notes/filter/[...slug]/page.tsx
 
 import NotesClient from "./Notes.client";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
+import { Tags } from "@/types/note";
 
 interface NotesPageProps {
   params: Promise<{ slug: string[] }>;
@@ -11,14 +12,13 @@ interface NotesPageProps {
 export default async function NotesPage({ params }: NotesPageProps) {
   const { slug } = await params;
   const currentSlug = slug || [];
-  let tag =
-    currentSlug[0] === "All"
-      ? undefined
-      : (currentSlug[0] as string | undefined);
+  let tag: Tags | undefined =
+    currentSlug[0] === "All" ? undefined : (currentSlug[0] as Tags | undefined);
   const pageNumber = 1;
-  const searchQuery = currentSlug[1];
+  const searchQuery = currentSlug[1] || "";
+
   if (searchQuery) {
-    tag = "none";
+    tag = "none" as Tags | undefined;
   }
 
   const initialData: FetchNotesResponse = await fetchNotes({
@@ -28,12 +28,5 @@ export default async function NotesPage({ params }: NotesPageProps) {
     tag,
   });
 
-  return (
-    <NotesClient
-      initialData={initialData}
-      tag={tag}
-      page={pageNumber}
-      searchQuery={searchQuery}
-    />
-  );
+  return <NotesClient initialData={initialData} tag={tag} />;
 }

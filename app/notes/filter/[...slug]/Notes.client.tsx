@@ -1,4 +1,4 @@
-// notes/filter/[...slug]/Notes.client.tsx
+// app/notes/filter/[...slug]/Notes.client.tsx
 
 "use client";
 
@@ -22,21 +22,12 @@ import css from "./NotesPage.module.css";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
-  tag?: string;
-  page?: number;
-  searchQuery?: string;
-  isModalOpen?: boolean;
+  tag?: Tags;
 }
 
-export default function NotesClient({
-  initialData,
-  tag,
-  page = 1,
-  searchQuery = "",
-  isModalOpen,
-}: NotesClientProps) {
-  const [currentPage, setCurrentPage] = useState(page);
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+export default function NotesClient({ initialData, tag }: NotesClientProps) {
+  const [currentPage, setCurrentPage] = useState(initialData.page || 1);
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(localSearchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
@@ -89,11 +80,12 @@ export default function NotesClient({
     ) {
       router.push(newPath);
     }
-    if (isModalOpen) {
-      const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
-      if (!isNaN(idFromPath)) setSelectedNoteId(idFromPath);
+    // Отримання ID з URL для відображення модального вікна
+    const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
+    if (!isNaN(idFromPath)) {
+      setSelectedNoteId(idFromPath);
     }
-  }, [currentTag, pathname, router, generateUrlPath, isModalOpen]);
+  }, [currentTag, pathname, router, generateUrlPath]);
 
   const handlePageChange = useCallback((selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected + 1);

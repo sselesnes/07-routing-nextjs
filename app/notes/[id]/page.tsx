@@ -27,18 +27,10 @@ export default async function NoteDetailsPage({
     tag: defaultTag,
   });
 
-  // Перевірка, чи це прямий вхід (без попереднього контексту)
-  const isDirectEntry = !process.env.NEXT_PUBLIC_IS_PRELOADED;
-
   return (
     <div className={css.notesPageWrapper}>
       <div className={css.pageContainer}>
-        <NotesClient
-          initialData={initialData}
-          tag={defaultTag}
-          page={defaultPage}
-          isModalOpen={isDirectEntry ? true : undefined}
-        />
+        <NotesClient initialData={initialData} tag={defaultTag} />
       </div>
     </div>
   );

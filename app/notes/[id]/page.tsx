@@ -1,9 +1,9 @@
 // app/notes/[id]/page.tsx
 
+import css from "../filter/[...slug]/NotesPage.module.css";
+import NotesClient from "../filter/[...slug]/Notes.client";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
-import NotesClient from "../filter/[...slug]/Notes.client";
-import css from "../filter/[...slug]/NotesPage.module.css";
 
 export default async function NoteDetailsPage({
   params,

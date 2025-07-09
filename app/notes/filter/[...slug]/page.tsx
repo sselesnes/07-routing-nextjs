@@ -23,10 +23,6 @@ export default async function NotesSlugPage({ params }: NotesSlugProps) {
     } else if (currentSlug === "All") {
       tag = undefined; // якщо сегмент "All" -> tag = undefined
     }
-
-    // else {
-    //   searchQuery = currentSlug; // Сегмент ідентифікован як пошуковий запит
-    // }
   }
 
   const pageNumber = 1;

@@ -1,10 +1,10 @@
 // layout.tsx
 
-import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
+import TanStackProvider from "@/components/TanStackProvider/TanStackProvider";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-import TanStackProvider from "@/components/TanStackProvider/TanStackProvider";
 
 export const metadata: Metadata = {
   title: "07-routing-nextjs",

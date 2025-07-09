@@ -3,11 +3,10 @@
 "use client";
 
 import css from "./NotePreview.module.css";
-import { fetchNoteById } from "@/lib/api";
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { updateNote } from "@/lib/api";
+import { updateNote, fetchNoteById } from "@/lib/api";
 import type { PaginatedNotes } from "@/lib/api";
 import type { Note } from "@/types/note";
 

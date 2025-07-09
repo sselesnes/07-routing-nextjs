@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 
 interface NoteListProps {
   notes: Note[];
-  tag?: string;
-  page: number;
-  onViewDetails: (id: number, tag?: string, page?: number) => void;
+  // tag?: string;
+  // page: number;
+  // onViewDetails: (id: number, tag?: string, page?: number) => void;
 }
 
 export default function NoteList({ notes }: NoteListProps) {

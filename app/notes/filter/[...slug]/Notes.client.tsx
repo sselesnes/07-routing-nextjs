@@ -4,7 +4,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import SearchBox from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
@@ -32,16 +32,11 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
   const [currentTag, setCurrentTag] = useState<string | undefined>(tag);
 
-  const router = useRouter();
   const pathname = usePathname();
-
   const apiTag = currentTag;
 
   const { data, error, isLoading } = useQuery<FetchNotesResponse, Error>({
-    queryKey: [
-      "notes",
-      { page: currentPage, query: debouncedQuery, tag: apiTag },
-    ],
+    queryKey: ["notes", currentPage, debouncedQuery, apiTag],
     queryFn: () =>
       fetchNotes({
         page: currentPage,
@@ -50,12 +45,7 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
         tag: apiTag,
       }),
     placeholderData: keepPreviousData,
-    initialData:
-      currentPage === 1 &&
-      debouncedQuery === "" &&
-      (!apiTag || apiTag === initialData.tag)
-        ? initialData
-        : undefined,
+    initialData: initialData, // Передача початкових даних з пропсів
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
   });
@@ -99,35 +89,6 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     setIsCreateModalOpen(false);
   }, []);
 
-  const handleViewDetails = useCallback(
-    (id: number) => {
-      setSelectedNoteId(id);
-      router.push(`/notes/${id}`, { scroll: false });
-    },
-    [router],
-  );
-
-  // const handleCloseModal = useCallback(() => {
-  //   console.log(
-  //     "handleCloseModal - Before close, selectedNoteId:",
-  //     selectedNoteId,
-  //     "History length:",
-  //     window.history.length,
-  //   );
-  //   setSelectedNoteId(null); // Скидаємо перед маршрутизацією
-  //   setTimeout(() => {
-  //     if (window.history.length > 2) {
-  //       router.back();
-  //     } else {
-  //       router.push(`/notes/filter/${tag || "All"}`);
-  //     }
-  //     console.log(
-  //       "handleCloseModal - After close, selectedNoteId:",
-  //       selectedNoteId,
-  //     );
-  //   }, 0);
-  // }, [router, tag]);
-
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
@@ -149,12 +110,7 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
       {isLoading ? (
         <p>Loading...</p>
       ) : data?.notes && data.notes.length > 0 ? (
-        <NoteList
-          notes={data.notes}
-          tag={currentTag}
-          page={currentPage}
-          onViewDetails={handleViewDetails}
-        />
+        <NoteList notes={data.notes} />
       ) : (
         <p>Nothing found</p>
       )}

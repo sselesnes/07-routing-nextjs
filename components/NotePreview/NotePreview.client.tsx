@@ -2,15 +2,14 @@
 
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api";
 import css from "./NotePreview.module.css";
-import type { Note } from "@/types/note";
+import { fetchNoteById } from "@/lib/api";
 import { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { updateNote } from "@/lib/api";
 import type { PaginatedNotes } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import type { Note } from "@/types/note";
 
 export default function NotePreview({ id }: { id: number }) {
   const router = useRouter();

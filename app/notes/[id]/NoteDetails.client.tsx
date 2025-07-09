@@ -1,18 +1,20 @@
-//app/notes/[id]/NoteDetails.client.tsx
+// app/notes/[id]/NoteDetails.client.tsx
 
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api";
 import css from "./NoteDetails.module.css";
-import type { Note } from "@/types/note";
-import { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Modal from "@/components/Modal/Modal";
 import { updateNote } from "@/lib/api";
 import type { PaginatedNotes } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { fetchNoteById } from "@/lib/api";
+import type { Note } from "@/types/note";
 
-export default function NoteDetailsClient({ id }: { id: number }) {
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+export default function NotePreview({ id }: { id: number }) {
   const router = useRouter();
   const { data: note } = useQuery<Note, Error>({
     queryKey: ["note", id],
@@ -53,7 +55,6 @@ export default function NoteDetailsClient({ id }: { id: number }) {
           return oldData;
         },
       );
-      // Додаємо інвалідацію кешу для перезапиту
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       setIsEditing(false);
       setMutationError(null);
@@ -109,83 +110,83 @@ export default function NoteDetailsClient({ id }: { id: number }) {
   };
 
   return (
-    <div className={css.container}>
-      <div className={css.item}>
-        <div className={css.header}>
-          <h2>{note.title}</h2>
-          <button className={css.closeBtn} onClick={handleClose}>
-            Close details
-          </button>
-        </div>
-        {isEditing ? (
-          <form onSubmit={handleSave}>
-            <div className={css.formGroup}>
-              <label htmlFor="title">Title</label>
-              <input
-                id="title"
-                type="text"
-                ref={titleRef}
-                defaultValue={note.title}
-                className={css.input}
-              />
-            </div>
-            <div className={css.formGroup}>
-              <label htmlFor="content">Content</label>
-              <textarea
-                id="content"
-                ref={contentRef}
-                defaultValue={note.content}
-                className={css.textarea}
-              />
-            </div>
-            <div className={css.formGroup}>
-              <label htmlFor="tag">Tag</label>
-              <select
-                id="tag"
-                ref={tagRef}
-                defaultValue={note.tag}
-                className={css.select}
-              >
-                <option value="Todo">Todo</option>
-                <option value="Work">Work</option>
-                <option value="Personal">Personal</option>
-                <option value="Meeting">Meeting</option>
-                <option value="Shopping">Shopping</option>
-              </select>
-            </div>
-            <div className={css.actions}>
-              <button
-                type="button"
-                className={css.cancelBtn}
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={css.saveBtn}
-                disabled={mutation.isPending}
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <p className={css.content}>{note.content}</p>
-            <div className={css.footer}>
-              <p className={css.date}>{displayDate}</p>
-              {!isEditing && (
-                <>
+    <Modal onClose={handleClose}>
+      <div className={css.container}>
+        <div className={css.item}>
+          <div className={css.header}>
+            <h2>{note.title}</h2>
+            <button className={css.closeBtn} onClick={handleClose}>
+              Close details
+            </button>
+          </div>
+          {isEditing ? (
+            <form onSubmit={handleSave}>
+              <div className={css.formGroup}>
+                <label htmlFor="title">Title</label>
+                <input
+                  id="title"
+                  type="text"
+                  ref={titleRef}
+                  defaultValue={note.title}
+                  className={css.input}
+                />
+              </div>
+              <div className={css.formGroup}>
+                <label htmlFor="content">Content</label>
+                <textarea
+                  id="content"
+                  ref={contentRef}
+                  defaultValue={note.content}
+                  className={css.textarea}
+                />
+              </div>
+              <div className={css.formGroup}>
+                <label htmlFor="tag">Tag</label>
+                <select
+                  id="tag"
+                  ref={tagRef}
+                  defaultValue={note.tag}
+                  className={css.select}
+                >
+                  <option value="Todo">Todo</option>
+                  <option value="Work">Work</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Meeting">Meeting</option>
+                  <option value="Shopping">Shopping</option>
+                </select>
+              </div>
+              <div className={css.actions}>
+                <button
+                  type="button"
+                  className={css.cancelBtn}
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={css.saveBtn}
+                  disabled={mutation.isPending}
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <p className={css.content}>{note.content}</p>
+              <div className={css.footer}>
+                <p className={css.date}>{displayDate}</p>
+                {!isEditing && (
                   <button className={css.editBtn} onClick={handleEditClick}>
                     Edit note
                   </button>
-                </>
-              )}
-            </div>
-          </>
-        )}
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -14,7 +14,7 @@ export default async function NotesSlugPage({ params }: NotesSlugProps) {
   // slug завжди масив у Next.js
 
   let tag: Tags | undefined = undefined;
-  let searchQuery: string = "";
+  const searchQuery: string = "";
   const currentSlug = slug[0];
 
   if (currentSlug) {
@@ -22,9 +22,11 @@ export default async function NotesSlugPage({ params }: NotesSlugProps) {
       tag = currentSlug as Tags; // Точна відповідність тегу з великої літери
     } else if (currentSlug === "All") {
       tag = undefined; // якщо сегмент "All" -> tag = undefined
-    } else {
-      searchQuery = currentSlug; // Сегмент є пошуковий запит
     }
+
+    // else {
+    //   searchQuery = currentSlug; // Сегмент ідентифікован як пошуковий запит
+    // }
   }
 
   const pageNumber = 1;
@@ -35,5 +37,5 @@ export default async function NotesSlugPage({ params }: NotesSlugProps) {
     tag,
   });
 
-  return <NotesClient initialData={initialData} tag={tag} />; // tag потрібен для рендера NotesClient
+  return <NotesClient initialData={initialData} tag={tag} />;
 }

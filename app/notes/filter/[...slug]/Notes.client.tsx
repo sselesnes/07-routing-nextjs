@@ -1,5 +1,4 @@
 // app/notes/filter/[...slug]/Notes.client.tsx
-
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -16,18 +15,16 @@ import NotePreviewClient from "@/app/notes/[id]/NoteDetails.client";
 
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
-import { Tags } from "@/types/note";
+import type { Tags } from "@/types/note";
 
 import css from "./NotesPage.module.css";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
-  tag?: Tags;
+  tag: Tags | undefined;
 }
 
 export default function NotesClient({ initialData, tag }: NotesClientProps) {
-  // console.log(tag, initialData);
-
   const [currentPage, setCurrentPage] = useState(initialData.page || 1);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [debouncedQuery] = useDebounce(localSearchQuery, 500);
@@ -40,7 +37,7 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
 
   const apiTag = currentTag;
 
-  const { data, error } = useQuery<FetchNotesResponse, Error>({
+  const { data, error, isLoading } = useQuery<FetchNotesResponse, Error>({
     queryKey: [
       "notes",
       { page: currentPage, query: debouncedQuery, tag: apiTag },
@@ -54,7 +51,9 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
       }),
     placeholderData: keepPreviousData,
     initialData:
-      currentPage === 1 && debouncedQuery === "" && apiTag === initialData.tag
+      currentPage === 1 &&
+      debouncedQuery === "" &&
+      (!apiTag || apiTag === initialData.tag)
         ? initialData
         : undefined,
     refetchOnWindowFocus: false,
@@ -65,29 +64,19 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     throw error;
   }
 
-  const generateUrlPath = useCallback(
-    (tag: Tags | "All" | undefined): string => {
-      const tagSegment = tag || "All";
-      return `/notes/filter/${tagSegment}`;
-    },
-    [],
-  );
-
   useEffect(() => {
-    const newPath = generateUrlPath(currentTag as Tags | "All" | undefined);
-    if (
-      pathname !== newPath &&
-      !pathname.startsWith("/notes/") &&
-      pathname !== "/"
-    ) {
-      router.push(newPath);
-    }
-    // Отримання ID з URL для відображення модального вікна
     const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
-    if (!isNaN(idFromPath)) {
-      setSelectedNoteId(idFromPath);
+
+    if (
+      !isNaN(idFromPath) &&
+      pathname.startsWith("/notes/") &&
+      !pathname.includes("/@modal/")
+    ) {
+      setSelectedNoteId(idFromPath); // Встановлюємо лише для /notes/[id], виключаючи /@modal
+    } else if (pathname.startsWith("/notes/filter/")) {
+      setSelectedNoteId(null); // Скидаємо для /notes/filter/[slug]
     }
-  }, [currentTag, pathname, router, generateUrlPath]);
+  }, [pathname]);
 
   const handlePageChange = useCallback((selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected + 1);
@@ -98,14 +87,12 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
       setCurrentPage(1);
       setLocalSearchQuery(value);
       if (value && !debouncedQuery) {
-        setCurrentTag(undefined); // Скидання тега на "All"
-        router.push(`/notes/filter/All/${value}`); // Перехід із searchQuery
+        setCurrentTag(undefined); // Скидання тега на "All" при початку пошуку
       } else if (!value && debouncedQuery) {
-        setCurrentTag(tag); // Повернення до початкового тегу
-        router.push(`/notes/filter/${tag || "All"}`); // Повернення до початкового маршруту
+        setCurrentTag(tag); // Повернення до початкового тегу при очищенні
       }
     },
-    [debouncedQuery, router, tag],
+    [debouncedQuery, tag],
   );
 
   const handleCloseCreateModal = useCallback(() => {
@@ -120,14 +107,26 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     [router],
   );
 
-  const handleCloseModal = useCallback(() => {
-    setSelectedNoteId(null);
-    if (window.history.length > 2) {
-      router.back();
-    } else {
-      router.push(`/notes/filter/${tag || "All"}`);
-    }
-  }, [router, tag]);
+  // const handleCloseModal = useCallback(() => {
+  //   console.log(
+  //     "handleCloseModal - Before close, selectedNoteId:",
+  //     selectedNoteId,
+  //     "History length:",
+  //     window.history.length,
+  //   );
+  //   setSelectedNoteId(null); // Скидаємо перед маршрутизацією
+  //   setTimeout(() => {
+  //     if (window.history.length > 2) {
+  //       router.back();
+  //     } else {
+  //       router.push(`/notes/filter/${tag || "All"}`);
+  //     }
+  //     console.log(
+  //       "handleCloseModal - After close, selectedNoteId:",
+  //       selectedNoteId,
+  //     );
+  //   }, 0);
+  // }, [router, tag]);
 
   return (
     <div className={css.app}>
@@ -147,7 +146,9 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
           Create note +
         </button>
       </header>
-      {data?.notes && data.notes.length > 0 ? (
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : data?.notes && data.notes.length > 0 ? (
         <NoteList
           notes={data.notes}
           tag={currentTag}
@@ -157,16 +158,16 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
       ) : (
         <p>Nothing found</p>
       )}
-      {isCreateModalOpen && (
+      {isCreateModalOpen && !selectedNoteId && (
         <Modal onClose={handleCloseCreateModal}>
           <NoteForm onClose={handleCloseCreateModal} />
         </Modal>
       )}
-      {selectedNoteId && (
-        <Modal onClose={handleCloseModal}>
+      {selectedNoteId &&
+        !isCreateModalOpen &&
+        !pathname.includes("/@modal/") && (
           <NotePreviewClient id={selectedNoteId} />
-        </Modal>
-      )}
+        )}
     </div>
   );
 }

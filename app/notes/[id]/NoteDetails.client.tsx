@@ -4,15 +4,13 @@
 
 import css from "./NoteDetails.module.css";
 import Modal from "@/components/Modal/Modal";
-import { updateNote } from "@/lib/api";
-import type { PaginatedNotes } from "@/lib/api";
-import { fetchNoteById } from "@/lib/api";
-import type { Note } from "@/types/note";
-
+import { fetchNoteById, updateNote } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { PaginatedNotes } from "@/lib/api";
+import type { Note } from "@/types/note";
 
 export default function NotePreview({ id }: { id: number }) {
   const router = useRouter();
@@ -30,32 +28,36 @@ export default function NotePreview({ id }: { id: number }) {
   const tagRef = useRef<HTMLSelectElement>(null);
 
   const mutation = useMutation({
-    mutationFn: (data: {
+    mutationFn: (note: {
       id: number;
       title: string;
       content: string;
       tag: string;
-    }) => updateNote(data),
+    }) => updateNote(note), // Надсилаємо оновлення нотатки на сервер
     onSuccess: (updatedNote) => {
+      // Оновлюємо кеш для однієї нотатки
       queryClient.setQueryData(["note", id], updatedNote);
+
+      // Оновлюємо список нотаток у кеші
       queryClient.setQueriesData<PaginatedNotes>(
         { queryKey: ["notes"] },
         (oldData) => {
-          if (oldData && oldData.pages) {
-            return {
-              ...oldData,
-              pages: oldData.pages.map((page) => ({
-                ...page,
-                notes: page.notes.map((n: Note) =>
-                  n.id === id ? { ...n, ...updatedNote } : n,
-                ),
-              })),
-            };
-          }
-          return oldData;
+          if (!oldData || !oldData.pages) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              notes: page.notes.map((note) =>
+                note.id === id ? { ...note, ...updatedNote } : note,
+              ),
+            })),
+          };
         },
       );
+
+      // Позначаємо список нотаток як застарілий для оновлення
       queryClient.invalidateQueries({ queryKey: ["notes"] });
+
       setIsEditing(false);
       setMutationError(null);
       handleClose();
@@ -82,8 +84,8 @@ export default function NotePreview({ id }: { id: number }) {
     setMutationError(null);
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = (event: React.FormEvent) => {
+    event.preventDefault();
     if (note && titleRef.current && contentRef.current && tagRef.current) {
       const updatedNote = {
         id: note.id,

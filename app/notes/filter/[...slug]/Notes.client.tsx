@@ -28,7 +28,7 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
   const [debouncedQuery] = useDebounce(localSearchQuery, 500);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
-  const [currentTag, setCurrentTag] = useState<string | undefined>(tag);
+  const [currentTag, setCurrentTag] = useState<Tags | undefined>(tag);
 
   const pathname = usePathname();
   const apiTag = currentTag;
@@ -43,7 +43,10 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
         tag: apiTag,
       }),
     placeholderData: keepPreviousData,
-    initialData: initialData, // Передача початкових даних з пропсів
+    initialData:
+      currentPage === 1 && debouncedQuery === "" && apiTag === initialData.tag
+        ? initialData
+        : undefined, // Використовуємо initialData лише для початкового стану
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
   });
@@ -52,17 +55,17 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
     throw error;
   }
 
+  // Обробка ID з URL для модального вікна
   useEffect(() => {
     const idFromPath = parseInt(pathname.split("/").pop() || "0", 10);
-
     if (
       !isNaN(idFromPath) &&
       pathname.startsWith("/notes/") &&
       !pathname.includes("/@modal/")
     ) {
-      setSelectedNoteId(idFromPath); // Встановлюємо лише для /notes/[id], виключаючи /@modal
+      setSelectedNoteId(idFromPath);
     } else if (pathname.startsWith("/notes/filter/")) {
-      setSelectedNoteId(null); // Скидаємо для /notes/filter/[slug]
+      setSelectedNoteId(null);
     }
   }, [pathname]);
 
@@ -72,15 +75,18 @@ export default function NotesClient({ initialData, tag }: NotesClientProps) {
 
   const handleSearchChange = useCallback(
     (value: string) => {
-      setCurrentPage(1);
-      setLocalSearchQuery(value);
-      if (value && !debouncedQuery) {
-        setCurrentTag(undefined); // Скидання тега на "All" при початку пошуку
-      } else if (!value && debouncedQuery) {
-        setCurrentTag(tag); // Повернення до початкового тегу при очищенні
+      const lowerCaseValue = value.toLowerCase();
+      if (lowerCaseValue !== localSearchQuery) {
+        setCurrentPage(1);
+        setLocalSearchQuery(lowerCaseValue);
+        if (lowerCaseValue) {
+          setCurrentTag(undefined); // Скидання тега при введенні запиту
+        } else {
+          setCurrentTag(tag); // Повернення до початкового тегу при очищенні
+        }
       }
     },
-    [debouncedQuery, tag],
+    [localSearchQuery, tag],
   );
 
   const handleCloseCreateModal = useCallback(() => {

@@ -28,5 +28,5 @@ export default function NoteDetailsPageModal() {
     }
   }, [currentPath, router]);
 
-  return null; // Нічого не рендеримо
+  return null;
 }

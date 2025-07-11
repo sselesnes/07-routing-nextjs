@@ -4,12 +4,12 @@
 
 import css from "./NoteForm.module.css";
 import * as Yup from "yup";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { createNote, updateNote } from "@/lib/api";
 import type { Note, Tags } from "@/types/note";
 import { TAGS } from "@/types/note";
-import { useState } from "react";
 
 interface NoteFormProps {
   note?: Note;

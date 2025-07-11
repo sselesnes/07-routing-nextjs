@@ -1,36 +1,32 @@
 // app/@modal/(.)notes/[id]/page.tsx
 
-"use client";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { fetchNoteById } from "@/lib/api";
+import NotePreviewClient from "@/app/notes/[id]/NoteDetails.client";
 
-import { usePathname, useRouter } from "next/navigation";
-import Modal from "@/components/Modal/Modal";
-import NotePreview from "./NotePreview.client";
+export default async function NoteDetailsPageModal({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const queryClient = new QueryClient();
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id);
 
-export default function NoteDetailsPageModal() {
-  const currentPath = usePathname();
-  const router = useRouter();
+  await queryClient.prefetchQuery({
+    queryKey: ["note", resolvedParams.id],
+    queryFn: () => fetchNoteById(id),
+  });
 
-  const handleCloseModal = () => {
-    router.back();
-  };
-
-  const segments = currentPath.split("/");
-  const lastSegment = segments[segments.length - 1];
-  const penultSegment = segments[segments.length - 2];
-
-  const isNoteDetailsPath =
-    !isNaN(parseFloat(lastSegment)) && penultSegment === "notes";
-
-  if (!isNoteDetailsPath) {
-    console.log("Path does not match /notes/[id], current path:", currentPath);
-    return null;
-  }
-
-  const noteId: number = parseFloat(lastSegment);
+  const dehydratedState = dehydrate(queryClient);
 
   return (
-    <Modal onClose={handleCloseModal}>
-      <NotePreview id={noteId} />
-    </Modal>
+    <HydrationBoundary state={dehydratedState}>
+      <NotePreviewClient id={id} />
+    </HydrationBoundary>
   );
 }

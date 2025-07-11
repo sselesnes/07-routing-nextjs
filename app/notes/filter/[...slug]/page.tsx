@@ -1,26 +1,31 @@
-// Notes/filter/[...slug]/page.tsx
+// app/notes/filter/[...slug]/page.tsx
 
 import NotesClient from "./Notes.client";
 import { fetchNotes } from "@/lib/api";
 import type { FetchNotesResponse } from "@/lib/api";
+import { TAGS, Tags } from "@/types/note";
 
-interface NotesPageProps {
+interface NotesSlugProps {
   params: Promise<{ slug: string[] }>;
 }
 
-export default async function NotesPage({ params }: NotesPageProps) {
+export default async function NotesSlugPage({ params }: NotesSlugProps) {
   const { slug } = await params;
-  const currentSlug = slug || [];
-  let tag =
-    currentSlug[0] === "All"
-      ? undefined
-      : (currentSlug[0] as string | undefined);
-  const pageNumber = 1;
-  const searchQuery = currentSlug[1];
-  if (searchQuery) {
-    tag = "none";
+  // slug завжди масив у Next.js
+
+  let tag: Tags | undefined = undefined;
+  const searchQuery: string = "";
+  const currentSlug = slug[0];
+
+  if (currentSlug) {
+    if (TAGS.includes(currentSlug as Tags)) {
+      tag = currentSlug as Tags; // Точна відповідність тегу з великої літери
+    } else if (currentSlug === "All") {
+      tag = undefined; // якщо сегмент "All" -> tag = undefined
+    }
   }
 
+  const pageNumber = 1;
   const initialData: FetchNotesResponse = await fetchNotes({
     page: pageNumber,
     query: searchQuery,
@@ -28,12 +33,5 @@ export default async function NotesPage({ params }: NotesPageProps) {
     tag,
   });
 
-  return (
-    <NotesClient
-      initialData={initialData}
-      tag={tag}
-      page={pageNumber}
-      searchQuery={searchQuery}
-    />
-  );
+  return <NotesClient initialData={initialData} tag={tag} />;
 }

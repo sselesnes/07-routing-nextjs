@@ -32,7 +32,7 @@ export default function Modal({ onClose, children }: ModalProps) {
       document.body.style.overflow = originalOverflow;
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [onClose]);
+  }, [onClose, children]);
 
   if (!isMounted) {
     return null;

@@ -63,7 +63,7 @@ export async function fetchNotes({
       params.search = query;
     }
 
-    if (tag && tag !== "none") {
+    if (tag && tag !== undefined) {
       params.tag = tag;
     }
 

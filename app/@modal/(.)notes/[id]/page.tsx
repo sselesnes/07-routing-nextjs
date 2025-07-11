@@ -1,32 +1,32 @@
 // app/@modal/(.)notes/[id]/page.tsx
-"use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { fetchNoteById } from "@/lib/api";
+import NotePreviewClient from "@/app/notes/[id]/NoteDetails.client";
 
-export default function NoteDetailsPageModal() {
-  const currentPath = usePathname();
-  const router = useRouter();
+export default async function NoteDetailsPageModal({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const queryClient = new QueryClient();
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id);
 
-  useEffect(() => {
-    const segments = currentPath.split("/");
-    const lastSegment = segments[segments.length - 1];
-    const penultSegment = segments[segments.length - 2];
+  await queryClient.prefetchQuery({
+    queryKey: ["note", resolvedParams.id],
+    queryFn: () => fetchNoteById(id),
+  });
 
-    const isNoteDetailsPath =
-      !isNaN(parseFloat(lastSegment)) && penultSegment === "notes";
+  const dehydratedState = dehydrate(queryClient);
 
-    if (isNoteDetailsPath) {
-      const noteId = parseFloat(lastSegment);
-      router.replace(`/notes/${noteId}`); // Перенаправлення без рендерингу
-    } else {
-      console.log(
-        "Path does not match /notes/[id], current path:",
-        currentPath,
-      );
-      router.replace("/notes/filter/All");
-    }
-  }, [currentPath, router]);
-
-  return null;
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <NotePreviewClient id={id} />
+    </HydrationBoundary>
+  );
 }
